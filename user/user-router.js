@@ -45,6 +45,16 @@ router.get('/users', authenticate, (req, res) => {
     })
 })
 
+router.get('/restricted/users', authenticate, (req, res) => {
+    User
+    .find()
+    .then(users => {
+        res.json(users);
+    })
+    .catch(error => {
+        res.status(500).json(error);
+    })
+})
 
 function authenticate (req, res, next) {
     const { username, password } = req.headers;
@@ -66,7 +76,6 @@ function authenticate (req, res, next) {
         res.status(401).json({ message: 'Please log in!' });
     }
 }
-
 
 
 module.exports = router;
