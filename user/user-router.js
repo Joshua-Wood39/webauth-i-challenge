@@ -2,6 +2,17 @@ const router = require('express').Router();
 const User = require('./user-model.js');
 const bcrypt = require('bcryptjs');
 
+router.get('/getDb', (req, res) => {
+    User
+    .find()
+    .then(users => {
+        res.status(200).json(users);
+    })
+    .catch(error => {
+        res.status(500).json({ error: 'Database could not be found...'})
+    })
+})
+
 router.post('/register', (req, res) => {
     let user = req.body;
 
