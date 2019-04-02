@@ -35,6 +35,7 @@ router.post('/login', (req,res) => {
         .first()
         .then(user => {
             if (user && bcrypt.compareSync(password, user.password)) {
+                req.session.user = user;
                 res.status(200).json({ message: `You are logged in, ${user.username}` });
             } else {
                 res.status(401).json({ message: 'You shall not pass!' });
@@ -67,24 +68,31 @@ router.get('/restricted/users', authenticate, (req, res) => {
     })
 })
 
-function authenticate (req, res, next) {
-    const { username, password } = req.headers;
-
-    if (username && password) {
-        User.findBy({ username })
-        .first()
-        .then(user => {
-            if (user && bcrypt.compareSync(password, user.password)) {
-                next();
+router.get('/logout', (req, res) => {
+    if(req.session) {
+        req.session.destroy(err => {
+            if(err) {
+                res.status(500).json({ error: 'Unable to log out!' })
             } else {
-                res.status(401).json({ message: 'You shall not pass!' });
+                res.status(200).json({ message: 'You are logged out!' })
             }
         })
-        .catch(error => {
-            res.status(500).json(error);
-        });
     } else {
-        res.status(401).json({ message: 'Please log in!' });
+        res.status(200).json({ message: 'You are logged out!' })
+    }
+})
+
+// --------------------------- Middleware -------------------------------------------
+
+function authenticate (req, res, next) {
+    try {
+        if(req && req.session && req.session.user) {
+            next();
+        } else {
+            res.status(401).json({ errorMessage: 'Your credentials are invalid'})
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Unable to authenticate'})
     }
 }
 
